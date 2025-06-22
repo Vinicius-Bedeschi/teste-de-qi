@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de QI Online - Multiplayer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Tela de Login -->
+    <div id="login-screen" class="screen active">
+        <div class="container">
+            <div class="header">
+                <h1>🧠 Teste de QI Online</h1>
+                <p class="subtitle">Quer saber como está seu QI? Faça o teste e descubra!</p>
+            </div>
+            
+            <div class="login-form">
+                <h2>Entre no Teste</h2>
+                <div class="input-group">
+                    <label for="player-name">Seu Nome:</label>
+                    <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="50" required>
+                </div>
+                <button id="start-btn" class="btn-primary">Começar Teste</button>
+                <button id="view-ranking-btn" class="btn-secondary">Ver Ranking</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela de Instruções -->
+    <div id="instructions-screen" class="screen">
+        <div class="container">
+            <div class="header">
+                <h1>📋 Instruções do Teste</h1>
+            </div>
+            
+            <div class="instructions-content">
+                <div class="instruction-item">
+                    <h3>🎯 Como Funciona</h3>
+                    <p>Você responderá 30 perguntas de múltipla escolha que testam diferentes aspectos da sua inteligência: lógica, matemática, padrões e raciocínio verbal.</p>
+                </div>
+                
+                <div class="instruction-item">
+                    <h3>⏱️ Tempo</h3>
+                    <p>Não há limite de tempo, mas o cronômetro registrará quanto tempo você leva para completar o teste. Um tempo menor pode resultar em uma pontuação de QI mais alta.</p>
+                </div>
+                
+                <div class="instruction-item">
+                    <h3>📝 Formato</h3>
+                    <p>Cada pergunta tem 4 alternativas (A, B, C, D). Selecione uma resposta e clique em "Confirmar Resposta" para avançar.</p>
+                </div>
+                
+                <div class="instruction-item">
+                    <h3>🏆 Pontuação</h3>
+                    <p>Seu QI será calculado com base no número de acertos e no tempo gasto. Ao final, você verá sua classificação e poderá comparar com outros jogadores no ranking global.</p>
+                </div>
+                
+                <div class="instruction-item">
+                    <h3>🎮 Classificações de QI</h3>
+                    <ul>
+                        <li><strong>Acima de 140:</strong> Gênio</li>
+                        <li><strong>120-140:</strong> Muito Superior</li>
+                        <li><strong>110-120:</strong> Superior</li>
+                        <li><strong>90-110:</strong> Médio (Normal)</li>
+                        <li><strong>80-90:</strong> Abaixo da Média</li>
+                        <li><strong>70-80:</strong> Pontuação Baixa</li>
+                        <li><strong>Abaixo de 70:</strong> Precisa de Mais Prática</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="instructions-actions">
+                <button id="back-to-login-btn" class="btn-secondary">Voltar</button>
+                <button id="start-test-btn" class="btn-primary">Iniciar Teste</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela do Teste -->
+    <div id="test-screen" class="screen">
+        <div class="container">
+            <!-- Header do Teste -->
+            <div class="test-header">
+                <div class="test-info">
+                    <span id="question-counter">Pergunta 1 de 30</span>
+                    <span id="player-display"></span>
+                </div>
+                <div class="timer">
+                    <span id="timer-display">00:00</span>
+                </div>
+            </div>
+            
+            <!-- Pergunta -->
+            <div class="question-container">
+                <h2 id="question-text">Carregando pergunta...</h2>
+                
+                <div class="options-container">
+                    <div class="option" data-option="0">
+                        <span class="option-letter">A</span>
+                        <span class="option-text" id="option-0">Opção A</span>
+                    </div>
+                    <div class="option" data-option="1">
+                        <span class="option-letter">B</span>
+                        <span class="option-text" id="option-1">Opção B</span>
+                    </div>
+                    <div class="option" data-option="2">
+                        <span class="option-letter">C</span>
+                        <span class="option-text" id="option-2">Opção C</span>
+                    </div>
+                    <div class="option" data-option="3">
+                        <span class="option-letter">D</span>
+                        <span class="option-text" id="option-3">Opção D</span>
+                    </div>
+                </div>
+                
+                <div class="test-actions">
+                    <button id="confirm-answer-btn" class="btn-primary" disabled>Confirmar Resposta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela de Resultados -->
+    <div id="results-screen" class="screen">
+        <div class="container">
+            <div class="header">
+                <h1>🎉 Resultado do Teste</h1>
+            </div>
+            
+            <div class="results-content">
+                <div class="qi-score">
+                    <h2>Seu QI:</h2>
+                    <div class="qi-number" id="qi-result">0</div>
+                    <div class="qi-classification" id="qi-classification">Calculando...</div>
+                </div>
+                
+                <div class="test-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Acertos:</span>
+                        <span class="stat-value" id="score-result">0/30</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Tempo:</span>
+                        <span class="stat-value" id="time-result">00:00</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-actions">
+                <button id="view-ranking-from-results-btn" class="btn-primary">Ver Ranking</button>
+                <button id="new-test-btn" class="btn-secondary">Novo Teste</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela de Ranking -->
+    <div id="ranking-screen" class="screen">
+        <div class="container">
+            <div class="header">
+                <h1>🏆 Ranking Geral</h1>
+            </div>
+            
+            <div class="ranking-content">
+                <div class="ranking-actions">
+                    <button id="refresh-ranking-btn" class="btn-secondary">Atualizar</button>
+                    <button id="clear-ranking-btn" class="btn-danger">Zerar Ranking</button>
+                </div>
+                
+                <div class="ranking-table">
+                    <div class="ranking-header">
+                        <span>Pos.</span>
+                        <span>Nome</span>
+                        <span>QI</span>
+                        <span>Acertos</span>
+                        <span>Tempo</span>
+                    </div>
+                    <div id="ranking-list" class="ranking-list">
+                        <div class="loading">Carregando ranking...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ranking-back">
+                <button id="back-from-ranking-btn" class="btn-secondary">Voltar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Jogador -->
+    <div id="player-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalhes do Jogador</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-item">
+                    <span class="detail-label">Nome:</span>
+                    <span class="detail-value" id="detail-name">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">QI:</span>
+                    <span class="detail-value" id="detail-qi">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Acertos:</span>
+                    <span class="detail-value" id="detail-score">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Tempo:</span>
+                    <span class="detail-value" id="detail-time">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Classificação:</span>
+                    <span class="detail-value" id="detail-classification">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Data:</span>
+                    <span class="detail-value" id="detail-date">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/questions.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
+
